@@ -5,7 +5,9 @@ import datetime
 from typing import List, Tuple
 
 from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
+from telegram.ext import ConversationHandler
 
 # local
 from util import CREATOR_CHAT_ID, GROUP_CHAT_ID
@@ -113,3 +115,52 @@ def movie_reminder(context: CallbackContext):
         chat_id=GROUP_CHAT_ID,
         text=f"beep boop {current_person}, I think it's your turn for movies. You got a poll for us this week?"
     )
+
+
+def callback_poll_tag(update: Update, context: CallbackContext) -> int:
+    """
+    Tag and pin a poll via callback
+    (from an inline keyboard query to user submitting the poll)
+    """
+    query = update.callback_query
+    query.answer()
+
+    curr = query.message.reply_to_message.from_user.first_name
+    dt = next_sunday()
+    text=f"{curr}'s #movie choice {dt.strftime('%m/%d/%y')}"
+
+    query.edit_message_text(text=text)
+    query.message.reply_to_message.pin()
+    return ConversationHandler.END
+
+
+def callback_poll_no(update: Update, context: CallbackContext) -> int:
+    """
+    Remove inline keyboard if user replies "no" to poll query
+    """
+    query = update.callback_query
+    query.answer()
+    query.delete_message()
+    return ConversationHandler.END
+
+
+def poll_query(update: Update, context: CallbackContext) -> int:
+    """
+    Create inline keyboard to ask a user submitting a poll if it's their
+    movie choice
+    """
+    keyboard = [
+        [
+            InlineKeyboardButton("yes", callback_data="1"),
+            InlineKeyboardButton("no", callback_data="0"),
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(
+        "Is this your movie poll? I can tag and pin it for you!",
+        reply_to_message_id=update.effective_message.message_id,
+        reply_markup=reply_markup
+    )
+
+    return 0

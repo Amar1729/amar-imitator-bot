@@ -12,6 +12,7 @@ import logging
 
 from telegram import Update
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
+from telegram.ext import ConversationHandler, CallbackQueryHandler
 
 # local
 import movies
@@ -53,6 +54,19 @@ if __name__ == "__main__":
 
     movie_members_handler = CommandHandler("members", movies.movie_members)
     dispatcher.add_handler(movie_members_handler)
+
+    poll_handler = ConversationHandler(
+        entry_points=[MessageHandler(Filters.chat(GROUP_CHAT_ID) & Filters.poll, movies.poll_query)],
+        states={
+            0: [
+                CallbackQueryHandler(movies.callback_poll_tag, pattern="^1$"),
+                CallbackQueryHandler(movies.callback_poll_no, pattern="^0$"),
+            ],
+        },
+        fallbacks=[],
+    )
+
+    dispatcher.add_handler(poll_handler)
 
     chat_allowlist = Filters.chat(GROUP_CHAT_ID) | Filters.chat(CREATOR_CHAT_ID)
 
