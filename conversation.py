@@ -93,7 +93,7 @@ def handle_mentions(update: Update, context: CallbackContext):
         return
 
     if update.message.reply_to_message and update.message.reply_to_message.poll:
-        movies.tag_poll(update, context)
+        movies.manual_poll_tag(update, context)
         return
 
     # TODO - fallback to a boilerplate default.

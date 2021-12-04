@@ -88,15 +88,18 @@ def movie_next(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.effective_chat.id, text="Can't do that in this chat! Sorry.")
 
 
-def tag_poll(update: Update, context: CallbackContext):
-    # TODO - also pin the poll
+def manual_poll_tag(update: Update, context: CallbackContext):
+    """
+    Tag-reply and pin a poll if a user replies to it and @'s me.
+    """
     # TODO - check that we haven't replied to this poll before (will require "db" of some kind)
     poll = update.message.reply_to_message
 
     curr = poll.from_user.first_name
     dt = next_sunday()
-
     text=f"{curr}'s #movie choice {dt.strftime('%m/%d/%y')}"
+
+    poll.pin()
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         reply_to_message_id=poll.message_id,
