@@ -58,7 +58,8 @@ def reply_info(update: Update, context: CallbackContext):
     gender = "sis" if MOVIE_CLUB.is_girl() else "bro"
 
     jobq = context.job_queue
-    next_job = jobq.jobs()[0]
+    # Assumes there is always a job of this name in the queue (there should be)
+    next_job = jobq.get_jobs_by_name("movie_reminder")[0]
     logging.info(next_job)
 
     context.bot.send_message(
