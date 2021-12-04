@@ -49,6 +49,10 @@ class MovieClub:
 MOVIE_CLUB = MovieClub(MOVIE_MEMBERS)
 
 
+def next(context: CallbackContext):
+    MOVIE_CLUB.next()
+
+
 def reply_info(update: Update, context: CallbackContext):
     current_person = MOVIE_CLUB.curr()
     gender = "sis" if MOVIE_CLUB.is_girl() else "bro"
@@ -62,7 +66,7 @@ def reply_info(update: Update, context: CallbackContext):
         reply_to_message_id=update.effective_message.message_id,
         text="\n".join([
             f"Up next for movies, my {gender} {current_person}'s on the docket!",
-            f"I'll remind you on {next_job.next_t}! :knife:"
+            f"I'll remind you on {next_job.next_t}! 🔪"
         ]),
     )
 

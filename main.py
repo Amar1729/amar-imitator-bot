@@ -33,11 +33,14 @@ def about(update: Update, context: CallbackContext):
 
 
 if __name__ == "__main__":
+    logging.info(f"Allowing messages from: [{CREATOR_CHAT_ID}, {GROUP_CHAT_ID}]")
+
     updater = Updater(token=TOKEN)
     dispatcher = updater.dispatcher
 
     jobq = updater.job_queue
     jobq.run_daily(movies.movie_reminder, time=datetime.time(hour=19, tzinfo=TZ), days=(3,))
+    jobq.run_daily(movies.next, time=datetime.time(hour=20, tzinfo=TZ), days=(6,))
 
     about_handler = CommandHandler("about", about)
     dispatcher.add_handler(about_handler)
