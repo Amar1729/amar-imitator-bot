@@ -39,6 +39,10 @@ def simple_reply(update: Update, context: CallbackContext):
         movies.reply_info(update, context)
         return
 
+    if update.message.reply_to_message and update.message.reply_to_message.poll:
+        movies.tag_poll(update, context)
+        return
+
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         reply_to_message_id=update.effective_message.message_id,
