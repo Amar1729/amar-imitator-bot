@@ -82,7 +82,10 @@ def movie_members(update: Update, context: CallbackContext):
 
 
 def movie_next(update: Update, context: CallbackContext):
-    MOVIE_CLUB.next()
+    if update.effective_chat.id == CREATOR_CHAT_ID:
+        MOVIE_CLUB.next()
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Can't do that in this chat! Sorry.")
 
 
 def movie_reminder(context: CallbackContext):
