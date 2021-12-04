@@ -15,7 +15,7 @@ from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandle
 
 # local
 import movies
-from util import TOKEN, CREATOR_CHAT_ID, GROUP_CHAT_ID
+from util import TOKEN, CREATOR_CHAT_ID, GROUP_CHAT_ID, TZ
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     dispatcher = updater.dispatcher
 
     jobq = updater.job_queue
-    jobq.run_daily(movies.movie_reminder, time=datetime.time(hour=19), days=(4,))
+    jobq.run_daily(movies.movie_reminder, time=datetime.time(hour=19, tzinfo=TZ), days=(3,))
 
     about_handler = CommandHandler("about", about)
     dispatcher.add_handler(about_handler)

@@ -4,6 +4,11 @@
 Read from local (sensitive) files.
 """
 
+import pytz
+
+
+TZ = pytz.timezone("America/New_York")
+
 
 with open("token") as f:
     TOKEN = f.read().strip()

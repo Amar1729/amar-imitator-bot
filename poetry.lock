@@ -122,7 +122,7 @@ test = ["pytest-mock (>=3.3)", "pytest (>=4.3)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "2682844113fa30a7a6ffea3123d73b9b8a70a832acd8beb87cc206fff7d15721"
+content-hash = "d9a724e3f661bedf2bad0d27e8655e5976e196ac6d8053b77998051926c4c3eb"
 
 [metadata.files]
 apscheduler = [
