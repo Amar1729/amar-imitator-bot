@@ -18,16 +18,11 @@ with open("movie_club.txt") as f:
         MOVIE_MEMBERS.append((first_name, username))
 
 
-def next_thursday() -> datetime.datetime:
-    # assume timezone for now?
+def next_sunday() -> datetime.date:
+    # datetime.date is always timezone-unaware
     d = datetime.datetime.now()
-
-    d = d + datetime.timedelta(hours=19 - d.hour)
-
-    if d.weekday() != 3:
-        d = d + datetime.timedelta(days=1)
-
-    return d
+    d += datetime.timedelta(days=6-d.weekday())
+    return datetime.date(year=d.year, month=d.month, day=d.day)
 
 
 class MovieClub:
