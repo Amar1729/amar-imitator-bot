@@ -5,6 +5,7 @@ Methods for replying to messages.
 """
 
 import logging
+import random
 import re
 from typing import List, Tuple
 
@@ -74,11 +75,12 @@ def reply_general(update: Update, context: CallbackContext) -> bool:
         _reply_helper("honestly i prefer emacs", update, context)
         return True
 
-    elif er_word := re.search(r"[a-zA-Z]*er\b", text):
-        er_stripped = er_word.group()[:-2]
-        er_joke = f"{er_stripped} 'er? I hardly even know 'er!"
-        _reply_helper(er_joke, update, context)
-        return True
+    elif er_word := re.search(r"[a-zA-Z]{3,}er\b", text):
+        if random.randint(1, 100) <= 25:
+            er_stripped = er_word.group()[:-2]
+            er_joke = f"{er_stripped} 'er? I hardly even know 'er!"
+            _reply_helper(er_joke, update, context)
+            return True
 
     return False
 
