@@ -4,13 +4,14 @@ import logging
 import datetime
 from typing import List, Tuple
 
-from telegram import Update
+from telegram import error, Update, Poll
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
 from telegram.ext import ConversationHandler
 
 # local
 from util import CREATOR_CHAT_ID, GROUP_CHAT_ID
+from data import Movies
 
 
 with open("movie_club.txt") as f:
@@ -88,6 +89,107 @@ def movie_next(update: Update, context: CallbackContext):
         MOVIE_CLUB.next()
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Can't do that in this chat! Sorry.")
+
+
+def _get_unseen(poll: Poll) -> List[str]:
+    max_votes = poll.total_voter_count
+    return [option.text for option in poll.options if option.voter_count == max_votes]
+
+
+def _save_poll_movies(poll: Poll):
+    movies = Movies()
+    for unseen in _get_unseen(poll):
+        logging.info(f"unseen: {unseen}")
+        movies.insert(unseen)
+
+
+def movie_save_poll(update: Update, context: CallbackContext) -> int:
+    """
+    Saves all 100% (unwatched) options from a movie poll.
+    Requires this command message to be a REPLY to telegram poll.
+
+    Will create an inline keyboard if the poll is not closed yet, with
+    buttons to indicate when the poll has been closed (or cancel).
+    """
+    logging.info(f"received save_movies: {update.message.message_id}")
+    try:
+        assert update.message.reply_to_message
+        assert update.message.reply_to_message.poll
+    except AssertionError:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            reply_to_message_id=update.effective_message.message_id,
+            text="hey bestie! this command needs to be in reply to a poll!",
+        )
+        return ConversationHandler.END
+
+    poll = update.message.reply_to_message.poll
+
+    if poll.is_closed:
+        _save_poll_movies(poll)
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            reply_to_message_id=update.effective_message.message_id,
+            # text="movies that each voter has not seen:\n" + "\n".join(unseen),
+            text="Saved all 💯 unseen options!",
+        )
+
+        return ConversationHandler.END
+
+    else:
+        return _callback_poll_closed_helper(update, context)
+
+
+def _callback_poll_closed_helper(update: Update, context: CallbackContext) -> int:
+    reply_markup = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Closed 👍", callback_data="1"),
+            InlineKeyboardButton("Cancel 🚫", callback_data="0"),
+        ]
+    ])
+
+
+    user = update.effective_message.reply_to_message.from_user.username
+
+    # in reply to a user pressing "Closed" but the poll isn't closed yet (i.e. from a callback)
+    if query := update.callback_query:
+        query.answer()
+        try:
+            query.edit_message_text(
+                f"This poll still hasn't been closed! Let me know when @{user} closes it.",
+                reply_markup=reply_markup,
+            )
+        except error.BadRequest:
+            # will throw telegram.error.BadRequest if the message_text has already been changed to this.
+            # the error is not a problem, continuing to click Closed after actually closing the poll works.
+            pass
+
+        return 0
+
+    # in reply to /save_movies command (no keyboard generated yet)
+    else:
+        update.message.reply_text(
+            f"This poll hasn't been closed yet! @{user}, let me know when you've closed it, and I'll save the unseen choices.",
+            reply_to_message_id=update.effective_message.reply_to_message.message_id,
+            reply_markup=reply_markup,
+        )
+
+        return 0
+
+
+def callback_poll_save(update: Update, context: CallbackContext) -> int:
+    query = update.callback_query
+    poll = query.message.reply_to_message.poll
+
+    if not poll.is_closed:
+        return _callback_poll_closed_helper(update, context)
+
+    _save_poll_movies(poll)
+
+    query.answer()
+    query.edit_message_text(text="Saved all 💯 unseen options!")
+    return ConversationHandler.END
 
 
 def manual_poll_tag(update: Update, context: CallbackContext):

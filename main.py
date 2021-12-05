@@ -5,6 +5,7 @@ about - short info for this bot
 upcoming - show next person for movie club dictator
 next - iterate through movie club members
 members - show all movie club members
+save_movies - save all 100% unseen options from a telegram.Poll
 """
 
 import datetime
@@ -54,6 +55,19 @@ if __name__ == "__main__":
 
     movie_members_handler = CommandHandler("members", movies.movie_members)
     dispatcher.add_handler(movie_members_handler)
+
+    movie_save_poll_handler = ConversationHandler(
+        entry_points=[CommandHandler("save_movies", movies.movie_save_poll)],
+        states={
+            0: [
+                CallbackQueryHandler(movies.callback_poll_save, pattern="^1$"),
+                CallbackQueryHandler(movies.callback_poll_no, pattern="^0$"),
+            ],
+        },
+        fallbacks=[],
+    )
+
+    dispatcher.add_handler(movie_save_poll_handler)
 
     poll_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.chat(GROUP_CHAT_ID) & Filters.poll, movies.poll_query)],
