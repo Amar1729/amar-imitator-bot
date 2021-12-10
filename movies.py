@@ -11,14 +11,7 @@ from telegram.ext import ConversationHandler
 
 # local
 from util import CREATOR_CHAT_ID, GROUP_CHAT_ID
-from data import Movies
-
-
-with open("movie_club.txt") as f:
-    MOVIE_MEMBERS = []
-    for line in f.readlines():
-        first_name, username = line.strip().split(" ")
-        MOVIE_MEMBERS.append((first_name, username))
+from data import Movies, Users
 
 
 def next_sunday() -> datetime.date:
@@ -28,37 +21,13 @@ def next_sunday() -> datetime.date:
     return datetime.date(year=d.year, month=d.month, day=d.day)
 
 
-class MovieClub:
-    def __init__(self, members: List[Tuple[str, str]]):
-        self.members = members
-        self._curr = 0
-
-    def next(self):
-        self._curr = (self._curr + 1) % len(self.members)
-
-    def curr(self) -> str:
-        return self.members[self._curr][1]
-
-    def is_girl(self) -> bool:
-        # LMAO
-
-        # based on the order in movie_club.txt
-        if self._curr in [3, 7]:
-            return True
-
-        return False
-
-
-MOVIE_CLUB = MovieClub(MOVIE_MEMBERS)
-
-
 def next(context: CallbackContext):
-    MOVIE_CLUB.next()
+    Users().next()
 
 
 def reply_info(update: Update, context: CallbackContext):
-    current_person = MOVIE_CLUB.curr()
-    gender = "sis" if MOVIE_CLUB.is_girl() else "bro"
+    current_person = Users().curr()
+    gender = "sis" if Users().is_girl() else "bro"
 
     jobq = context.job_queue
     # Assumes there is always a job of this name in the queue (there should be)
@@ -76,17 +45,17 @@ def reply_info(update: Update, context: CallbackContext):
 
 
 def movie_upcoming(update: Update, context: CallbackContext):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=MOVIE_CLUB.curr())
+    context.bot.send_message(chat_id=update.effective_chat.id, text=Users().curr())
 
 
 def movie_members(update: Update, context: CallbackContext):
-    msg = ["Members:"] + [m[0] for m in MOVIE_CLUB.members]
+    msg = ["Members:"] + [m["name"] for m in Users().members]
     context.bot.send_message(chat_id=update.effective_chat.id, text="\n".join(msg))
 
 
 def movie_next(update: Update, context: CallbackContext):
     if update.effective_chat.id == CREATOR_CHAT_ID:
-        MOVIE_CLUB.next()
+        Users().next()
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text="Can't do that in this chat! Sorry.")
 
@@ -212,7 +181,7 @@ def manual_poll_tag(update: Update, context: CallbackContext):
 
 
 def movie_reminder(context: CallbackContext):
-    current_person = MOVIE_CLUB.curr()
+    current_person = Users().curr()
     context.bot.send_message(
         chat_id=GROUP_CHAT_ID,
         text=f"beep boop {current_person}, I think it's your turn for movies. You got a poll for us this week?"

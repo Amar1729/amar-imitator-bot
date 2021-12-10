@@ -5,6 +5,7 @@ quick/dirty "database" for amar imitator bot
 """
 
 import pickle
+import json
 
 from typing import List, Optional
 
@@ -46,3 +47,31 @@ class Movies:
         """
         self.movies.append(title)
         self._save()
+
+
+class Users:
+    def __init__(self):
+        with open("movie_club.json") as f:
+            self.members = json.load(f)
+
+    def _save(self):
+        with open("movie_club.json", "w") as f:
+            json.dump(self.members, f)
+
+    def next(self):
+        idx, _ = next(filter(lambda e: e[1]["current"], enumerate(self.members)))
+        self.members[idx] = False
+        idx = (idx + 1) % len(self.members)
+        self.members[idx] = True
+
+        self._save()
+
+    def curr(self) -> str:
+        person = next(filter(lambda m: m["current"], self.members))
+        return person["username"]
+
+    def is_girl(self) -> bool:
+        idx, _ = next(filter(lambda e: e[1]["current"], enumerate(self.members)))
+        if idx in [3, 7]:
+            return True
+        return False
