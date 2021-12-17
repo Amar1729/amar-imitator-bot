@@ -60,9 +60,9 @@ class Users:
 
     def next(self):
         idx, _ = next(filter(lambda e: e[1]["current"], enumerate(self.members)))
-        self.members[idx] = False
+        self.members[idx]["current"] = False
         idx = (idx + 1) % len(self.members)
-        self.members[idx] = True
+        self.members[idx]["current"] = True
 
         self._save()
 
